@@ -1,0 +1,54 @@
+﻿@page "/edit-movie"
+@page "/edit-movie/{id:int}"
+@inject DataAccess dataAccess
+@inject NavigationManager navigation
+@rendermode InteractiveServer
+
+
+<h3>EditMovie</h3>
+
+<EditForm Model="Movie" OnSubmit="HandleSubmit" FormName="movieForm">
+    <label>Title</label>
+    <InputText @bind-Value="@Movie.Title"></InputText>
+    <label>Description</label>
+    <InputText @bind-Value="@Movie.Description"></InputText>
+    <label>Duration</label>
+    <InputNumber @bind-Value="@Movie.Duration"></InputNumber>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+@code {
+    [Parameter] public int id { get; set; } = -1;
+
+    [SupplyParameterFromForm]
+    private Movie Movie { get; set; } = new Movie { Title = "", Duration = 0, Description = "" };
+
+    private bool _editMode = false;
+
+    private async Task HandleSubmit()
+    {
+        if (_editMode)
+        {
+            await dataAccess.UpdateMovie(Movie);
+        }
+        else
+        {
+            await dataAccess.AddMovie(Movie);
+            navigation.NavigateTo("/movielist");
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (id > -1)
+        {
+            var mov = await dataAccess.GetMovieById(id);
+            if (mov is not null)
+            {
+                Movie = mov;
+                _editMode = true;
+            }
+        }
+    }
+}

@@ -1,0 +1,56 @@
+﻿@page "/movielist"
+@inject DataAccess dataAccess
+@inject NavigationManager navigation
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+<h3>MovieList</h3>
+
+<p> This is a list of all my movies! </p>
+@if (movies == null)
+{
+    <p>Loading...</p>
+}
+else if (movies.Count == 0)
+{
+    <p> No movies in database :(</p>
+    <button class="btn btn-primary" @onclick="AddNewMovie">Add new movie!</button>
+}
+else
+{
+    <ul>
+        @foreach (var mov in movies)
+        {
+            <li>Title: @mov.Title | Duration: @mov.Duration <button @onclick="() => EditMovie(mov.Id)">Edit Movie</button></li>
+        }
+    </ul>
+    <button class="btn btn-primary" @onclick="AddNewMovie">Add new movie!</button>
+}
+@code {
+    private List<Movie> movies;
+
+    protected override async Task OnAfterRenderAsync(bool isFirstRender)
+    {
+        if (isFirstRender)
+        {
+            movies = await dataAccess.GetAllMovies();
+            StateHasChanged();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        movies = await dataAccess.GetAllMovies();
+
+    }
+
+    private void EditMovie(int id)
+    {
+        navigation.NavigateTo($"/edit-movie/{id}");
+
+    }
+
+    private void AddNewMovie()
+    {
+        navigation.NavigateTo("/edit-movie");
+    }
+}
